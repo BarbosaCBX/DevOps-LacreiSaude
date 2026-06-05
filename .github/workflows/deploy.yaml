@@ -9,7 +9,7 @@ env:
   ECR_REPOSITORY: lacreisaude-api-devops          
   ECS_SERVICE: api-service               
   ECS_CLUSTER: api-cluster
-  ECS_TASK_DEFINITION: lacrei-task-family               
+  ECS_TASK_DEFINITION: lacrei-task-family           
   CONTAINER_NAME: lacreisaude-api
 
 jobs:
@@ -73,9 +73,7 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
       - name: Download AWS ECS Task Definition
