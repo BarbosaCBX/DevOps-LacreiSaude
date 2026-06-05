@@ -13,7 +13,7 @@ app.use(cors({
 
 app.use(express.json());
 
-// Rota obrigatória de /status (Healthcheck)
+// Rota obrigatória de /status (Healthcheck) Teste de Pipeline v2
 app.get('/status', (req, res) => {
   res.status(200).json({
     status: 'UP',
