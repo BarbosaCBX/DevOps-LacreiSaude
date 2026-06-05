@@ -2,7 +2,7 @@
 
 Este repositório contém uma API Node.js containerizada e um fluxo completo de Integração e Implantação Contínua (CI/CD) integrado à AWS (ECR/ECS Fargate) utilizando GitHub Actions, desenvolvido como parte do desafio técnico de DevOps.
 
-🔗 **Link da aplicação em produção:**(http://18.118.109.231:3000/status)
+🔗 **Link da aplicação em produção:** http://3.134.116.45:3000/status
 
 ---
 
