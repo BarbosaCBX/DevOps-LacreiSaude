@@ -1,0 +1,104 @@
+name: CI/CD LacreiSaude
+
+on:
+  push:
+    branches: [ "main", "staging" ]
+
+env:
+  AWS_REGION: us-east-2             
+  ECR_REPOSITORY: lacreisaude-api-devops          
+  ECS_SERVICE: api-service               
+  ECS_CLUSTER: api-cluster               
+  CONTAINER_NAME: lacreisaude-api
+
+jobs:
+  continuous-integration:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Run Tests
+        run: npm test
+
+      - name: Criar imagem docker (teste local)
+        run: docker build -t local-test-image:latest .
+
+      - name: Validate Container (Healthcheck Test)
+        run: |
+          docker run -d -p 3000:3000 --name test-container local-test-image:latest
+          sleep 5
+          HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}" http://localhost:3000/status)
+          if [ "$HTTP_STATUS" -eq 200 ]; then
+            echo "Container validado com sucesso! Rota /status retornou 200."
+            docker stop test-container && docker rm test-container
+          else
+            echo "Falha na validação. Rota /status retornou $HTTP_STATUS"
+            docker stop test-container && docker rm test-container
+            exit 1
+          fi
+
+  continuous-deployment:
+    needs: continuous-integration
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Download AWS ECS Task Definition
+        run: |
+          aws ecs describe-task-definition --task-definition ${{ env.ECS_CLUSTER }} --query taskDefinition > task-definition.json
+
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: ${{ env.CONTAINER_NAME }}
+          image: ${{ steps.build-image.outputs.image }}
+
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
+
+      # BÔNUS: Notificação de Sucesso via Slack (Exemplo)
+      - name: Notify Slack on Success
+        if: success()
+        run: |
+          curl -X POST -H 'Content-type: application/json' --data '{"text":"🚀 Deploy realizado com sucesso para a branch ${{ github.ref_name }}!"}' ${{ secrets.SLACK_WEBHOOK_URL }}
