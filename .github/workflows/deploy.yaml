@@ -8,8 +8,8 @@ env:
   AWS_REGION: us-east-2             
   ECR_REPOSITORY: lacreisaude-api-devops          
   ECS_SERVICE: api-service               
-  ECS_CLUSTER: api-cluster
-  ECS_TASK_DEFINITION: lacrei-task-family           
+  ECS_CLUSTER: lacreisaude-cluster
+  ECS_TASK_DEFINITION: lacreisaude-task          
   CONTAINER_NAME: lacreisaude-api
 
 jobs:
