@@ -99,5 +99,7 @@ jobs:
       # BÔNUS: Notificação de Sucesso via Slack (Exemplo)
       - name: Notify Slack on Success
         if: success()
+        env:
+          SLACK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
-          curl -X POST -H 'Content-type: application/json' --data '{"text":"🚀 Deploy realizado com sucesso para a branch ${{ github.ref_name }}!"}' ${{ secrets.SLACK_WEBHOOK_URL }}
+          curl -X POST -H 'Content-type: application/json' --data '{"text":"🚀 Deploy realizado com sucesso para a branch ${{ github.ref_name }}!"}' "$SLACK_URL"
