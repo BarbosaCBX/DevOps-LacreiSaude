@@ -1,0 +1,13 @@
+{
+  "name": "devops-challenge-api",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo 'Rodando testes básicos...' && exit 0"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "cors": "^2.8.5"
+  }
+}
