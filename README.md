@@ -40,10 +40,10 @@ Como o pipeline foi blindado para **não utilizar a tag `latest`** devido às po
   git push origin main
 
 
-**Rollback Manual de Emergência (AWS CLI):**
-Caso precise mitigar uma falha imediatamente sem aguardar o pipeline:
-bash
-aws ecs update-service --cluster lacreisaude-cluster --service lacreisaude-service --task-definition lacreisaude-task:VERSION_ANTERIOR --force-new-deployment
+* **Rollback Manual de Emergência (AWS CLI):**
+  Caso precise mitigar uma falha imediatamente sem aguardar o pipeline:
+  ```bash
+  aws ecs update-service --cluster lacreisaude-cluster --service lacreisaude-service --task-definition lacreisaude-task:VERSION_ANTERIOR --force-new-deployment
 
 ---
 
