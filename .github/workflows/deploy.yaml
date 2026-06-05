@@ -8,7 +8,8 @@ env:
   AWS_REGION: us-east-2             
   ECR_REPOSITORY: lacreisaude-api-devops          
   ECS_SERVICE: api-service               
-  ECS_CLUSTER: api-cluster               
+  ECS_CLUSTER: api-cluster
+  ECS_TASK_DEFINITION: lacrei-task-family               
   CONTAINER_NAME: lacreisaude-api
 
 jobs:
@@ -79,7 +80,7 @@ jobs:
 
       - name: Download AWS ECS Task Definition
         run: |
-          aws ecs describe-task-definition --task-definition ${{ env.ECS_CLUSTER }} --query taskDefinition > task-definition.json
+          aws ecs describe-task-definition --task-definition ${{ env.ECS_TASK_DEFINITION }} --query taskDefinition > task-definition.json
 
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
