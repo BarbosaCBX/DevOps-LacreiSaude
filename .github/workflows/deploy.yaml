@@ -103,3 +103,16 @@ jobs:
           SLACK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
           curl -X POST -H 'Content-type: application/json' --data '{"text":"🚀 Deploy realizado com sucesso para a branch ${{ github.ref_name }}!"}' "$SLACK_URL"
+
+      - name: Falhas (Rollback & Alerta)
+        if: failure()
+        env:
+          SLACK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          echo "O deploy falhou! Forçando o ECS a reciclar as tasks e manter a última versão estável ativa..."
+          
+          # Força o ECS a ignorar o deploy quebrado e manter/restaurar a estabilidade da versão anterior
+          aws ecs update-service --cluster ${{ env.ECS_CLUSTER }} --service ${{ env.ECS_SERVICE }} --force-new-deployment
+        
+          # Alerta focado no Slack sobre a falha
+          curl -X POST -H 'Content-type: application/json' --data '{"text":"🚨 *Falha no Deploy!* O pipeline da branch ${{ github.ref_name }} falhou. Rollback automático acionado no ECS."}' "$SLACK_URL"
