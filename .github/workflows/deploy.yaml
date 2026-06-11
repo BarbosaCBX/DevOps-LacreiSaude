@@ -11,7 +11,8 @@ env:
   ECS_CLUSTER: lacreisaude-cluster
   ECS_TASK_DEFINITION: lacreisaude-task          
   CONTAINER_NAME: lacreisaude-api
-
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  
 jobs:
   continuous-integration:
     runs-on: ubuntu-latest
